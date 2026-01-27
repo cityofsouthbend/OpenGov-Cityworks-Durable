@@ -6,8 +6,8 @@ const activityName = 'Cityworks-OpenGov-Orchestrator';
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
     const body = context.df.getInput() || {};
     
-    const cwToken = yield context.df.callActivity(getCWToken);
-
+    const cwToken = yield context.df.callActivity('token');
+    const imageInfo = yield context.df.callActivity('images', { cwToken, body });
     return true;
 });
 

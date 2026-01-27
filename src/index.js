@@ -12,3 +12,4 @@ require('./orchestrator/Cityworks-OpenGov-Orchestrator');
 
 // activities
 require('./activity/token');
+require('./activity/images');
