@@ -1,5 +1,6 @@
 const { app } = require('@azure/functions');
 const df = require('durable-functions');
+const axios = require('axios');
 
 df.app.activity('token', {
     handler: () => {
