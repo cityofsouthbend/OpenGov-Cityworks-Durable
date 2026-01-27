@@ -6,11 +6,15 @@ app.http('Cityworks-OpenGov-OrchestratorHttpStart', {
     extraInputs: [df.input.durableClient()],
     handler: async (request, context) => {
         const client = df.getClient(context);
-        const body = await request.text();
-        const instanceId = await client.startNew(request.params.orchestratorName, { input: body });
+        try {
+            const body = await request.json();
+            const instanceId = await client.startNew('Cityworks-OpenGov-OrchestratorOrchestrator', { input: body });
+            context.log(`Started orchestration with ID = '${instanceId}'.`);
+            return client.createCheckStatusResponse(request, instanceId);
+        } catch (err) {
+            context.log.error('Error starting orchestration:', err);
+            throw err;
+         }
 
-        context.log(`Started orchestration with ID = '${instanceId}'.`);
-
-        return client.createCheckStatusResponse(request, instanceId);
     },
 });
