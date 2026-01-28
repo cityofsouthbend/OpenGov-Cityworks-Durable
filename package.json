@@ -9,7 +9,8 @@
   "dependencies": {
     "@azure/functions": "^4.0.0",
     "axios": "^1.13.3",
-    "durable-functions": "^3.0.0-alpha.5"
+    "durable-functions": "^3.0.0-alpha.5",
+    "stream-to-buffer": "^0.1.0"
   },
   "main": "src/{index.js,functions/*.js}"
 }

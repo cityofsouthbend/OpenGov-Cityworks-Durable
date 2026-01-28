@@ -15,7 +15,13 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             const attachmentId      = attachment.Id;
             const attachmentName    = "Cityworks_" + attachmentId.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + ".jpg";
             const fileUploadResult  = yield context.df.callActivity('fileUpload', attachmentName);
-            returnValues.push({ fileUploadResult });
+            const fileID            = fileUploadResult.data.id;
+            const uploadUrl         = fileUploadResult.data.attributes.uploadUrl;
+            returnValues.push({ uploadUrl });
+            const uploadResult      = yield context.df.callActivity('uploadImages', { attachmentId, cwToken, uploadUrl });
+            returnValues.push({ attachmentId, ...uploadResult });
+            const addedFileResult  = yield context.df.callActivity('attachFile', { fileID, attachmentName });
+            returnValues.push({ attachedFile: addedFileResult });
             // const [blobName, containerName, startFile, conDis] = yield context.df.callActivity("DownloadAttachment", [attachmentId, cwToken, accelaToken, accelaCaseID]);
             // const sendAttachmentResult       = yield context.df.callActivity("SendAttachmentToAccela", [blobName, containerName, attachmentName, accelaCaseID, accelaToken]);
         }
