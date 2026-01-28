@@ -8,7 +8,7 @@ df.app.activity("attachFile", {
     
     const attachmentUpload = await axios({
       method: "POST",
-      url: `https://api.plce.opengov.com/plce/v2/southbendin/records/10022/attachments`, //hard coded record ID for now
+      url: `https://api.plce.opengov.com/plce/v2/southbendin/records/10680/attachments`, //hard coded record ID for now
       headers: { 
         'Content-Type': 'application/vnd.api+json',
         'Authorization': `Token ${process.env.OPENGOV_TOKEN}`

@@ -22,10 +22,10 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             returnValues.push({ attachmentId, ...uploadResult });
             const addedFileResult  = yield context.df.callActivity('attachFile', { fileID, attachmentName });
             returnValues.push({ attachedFile: addedFileResult });
-            // const [blobName, containerName, startFile, conDis] = yield context.df.callActivity("DownloadAttachment", [attachmentId, cwToken, accelaToken, accelaCaseID]);
-            // const sendAttachmentResult       = yield context.df.callActivity("SendAttachmentToAccela", [blobName, containerName, attachmentName, accelaCaseID, accelaToken]);
         }
     }
+
+    // will need to update record workflow step (may be two parts - retrieve steps to get step ID and ordinal and then update step)
 
     return returnValues;
 });
