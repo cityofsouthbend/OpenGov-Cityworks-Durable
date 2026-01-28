@@ -4,11 +4,24 @@ const df = require('durable-functions');
 const activityName = 'Cityworks-OpenGov-Orchestrator';
 
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
+    const returnValues = [];
     const body = context.df.getInput() || {};
     
     const cwToken = yield context.df.callActivity('token');
-    const imageInfo = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.id });
-    return imageInfo;
+    const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.id });
+
+    if ( attachments.length > 0 ) {
+        for (let attachment of attachments) {
+            const attachmentId      = attachment.Id;
+            const attachmentName    = "Cityworks_" + attachmentId.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + ".jpg";
+            const fileUploadResult  = yield context.df.callActivity('fileUpload', attachmentName);
+            returnValues.push(fileUploadResult);
+            // const [blobName, containerName, startFile, conDis] = yield context.df.callActivity("DownloadAttachment", [attachmentId, cwToken, accelaToken, accelaCaseID]);
+            // const sendAttachmentResult       = yield context.df.callActivity("SendAttachmentToAccela", [blobName, containerName, attachmentName, accelaCaseID, accelaToken]);
+        }
+    }
+
+    return returnValues;
 });
 
 

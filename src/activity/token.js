@@ -4,8 +4,8 @@ const axios = require('axios');
 
 df.app.activity('token', {
     handler: () => {
-        const loginName = '***REMOVED***';
-        const password = '***REMOVED***';
+        const loginName = process.env.CITYWORKS_USER;
+        const password = process.env.CITYWORKS_PASS;
         return axios.get("https://app05.cityworksonline.com/CLIENT_SouthBendIN/Services/General/Authentication/Authenticate?data={'LoginName':'" + loginName + "','Password':'" + password + "'}").then(resp => `${resp.data.Value.Token}` ).catch(e => e)
     },
 });
