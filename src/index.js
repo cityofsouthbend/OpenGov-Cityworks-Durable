@@ -11,5 +11,7 @@ require('./starter/starter');
 require('./orchestrator/Cityworks-OpenGov-Orchestrator');
 
 // activities
+require('./activity/envCheck');
 require('./activity/token');
 require('./activity/images');
+require('./activity/fileUpload');
