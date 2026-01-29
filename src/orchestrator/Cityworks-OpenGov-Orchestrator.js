@@ -20,6 +20,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     if ( attachments.length > 0 ) {
         for (let attachment of attachments) {
             const OpenGovID = body.OpenGovID;
+            console.log('CW-OG OpenGovID:', OpenGovID);
             const attachmentId      = attachment.Id;
             const attachmentName    = "Cityworks_" + attachmentId.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + ".jpg";
             const fileUploadResult  = yield context.df.callActivity('fileUpload', attachmentName);
