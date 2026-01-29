@@ -5,9 +5,11 @@ const activityName = 'Cityworks-OpenGov-Orchestrator';
 
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
     const returnValues = [];
+    // currently looks like this in CItyworks {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","AccelaCaseID":"{{Text1}}","AccelaInspectionID":"{{Text2}}"}
+    // will now look like this {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","OpenGovID":"{{Text1}}","RecordName":"{{Text2}}"}
     const body = context.df.getInput() || {};
     const cwToken = yield context.df.callActivity('token');
-    const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.id });
+    const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.OpenGovID });
     returnValues.push({ attachmentsFound: attachments.length });
 
     if ( attachments.length > 0 ) {
