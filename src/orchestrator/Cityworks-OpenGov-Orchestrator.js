@@ -10,12 +10,12 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     // current POST API opengov-cityworks-apgbc2gth3cyftda.centralus-01.azurewebsites.net/api/orchestrators/Cityworks-OpenGov-OrchestratorOrchestrator
     // previous codemowing-ver3.azurewebsites.net/cw
     const body = context.df.getInput() || {};
-    console.log('Orchestrator input:', body);
+    console.log('CW-OG ORCH Orchestrator input:', body);
     const cwToken = yield context.df.callActivity('token');
-    console.log('Cityworks Token retrieved');
+    console.log('CW-OG ORCH Cityworks Token retrieved');
     const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.OpenGovID });
     returnValues.push({ attachmentsFound: attachments.length });
-    console.log(attachments)    
+    console.log('CW-OG ORC attachments', attachments);    
 
     if ( attachments.length > 0 ) {
         for (let attachment of attachments) {
