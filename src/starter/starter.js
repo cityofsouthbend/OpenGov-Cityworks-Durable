@@ -12,7 +12,7 @@ app.http('Cityworks-OpenGov-OrchestratorHttpStart', {
             context.log(`Started orchestration with ID = '${instanceId}'.`);
             return client.createCheckStatusResponse(request, instanceId);
         } catch (err) {
-            context.log.error('Error starting orchestration:', err);
+            context.log('Error starting orchestration:', err);
             throw err;
          }
 
