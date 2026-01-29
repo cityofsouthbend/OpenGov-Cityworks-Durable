@@ -13,7 +13,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     console.log('CW-OG ORCH Orchestrator input:', body);
     const cwToken = yield context.df.callActivity('token');
     console.log('CW-OG ORCH Cityworks Token retrieved');
-    const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.OpenGovID });
+    const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.CityworksWOID });
     returnValues.push({ attachmentsFound: attachments.length });
     console.log('CW-OG ORC attachments', attachments);    
 
