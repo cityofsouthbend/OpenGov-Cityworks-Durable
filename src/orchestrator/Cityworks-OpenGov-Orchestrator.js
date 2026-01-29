@@ -10,7 +10,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     // current POST API opengov-cityworks-apgbc2gth3cyftda.centralus-01.azurewebsites.net/api/orchestrators/Cityworks-OpenGov-OrchestratorOrchestrator
     // previous codemowing-ver3.azurewebsites.net/cw
     const body = context.df.getInput() || {};
-    console.log('CW-OG ORCH Orchestrator input:', body);
+    console.log('CW-OG ORCH Orchestrator input:', body.CityworksWOID, body.OpenGovID);
     const cwToken = yield context.df.callActivity('token');
     console.log('CW-OG ORCH Cityworks Token retrieved');
     const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.CityworksWOID });
