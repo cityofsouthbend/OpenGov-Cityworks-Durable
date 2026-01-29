@@ -7,10 +7,15 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     const returnValues = [];
     // currently looks like this in CItyworks {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","AccelaCaseID":"{{Text1}}","AccelaInspectionID":"{{Text2}}"}
     // will now look like this {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","OpenGovID":"{{Text1}}","RecordName":"{{Text2}}"}
+    // current POST API opengov-cityworks-apgbc2gth3cyftda.centralus-01.azurewebsites.net/api/orchestrators/Cityworks-OpenGov-OrchestratorOrchestrator
+    // previous codemowing-ver3.azurewebsites.net/cw
     const body = context.df.getInput() || {};
+    console.log('Orchestrator input:', body);
     const cwToken = yield context.df.callActivity('token');
+    console.log('Cityworks Token retrieved');
     const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.OpenGovID });
     returnValues.push({ attachmentsFound: attachments.length });
+    console.log(attachments)    
 
     if ( attachments.length > 0 ) {
         for (let attachment of attachments) {
