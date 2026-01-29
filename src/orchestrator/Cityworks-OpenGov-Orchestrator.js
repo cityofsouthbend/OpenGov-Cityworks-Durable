@@ -19,8 +19,6 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
 
     if ( attachments.length > 0 ) {
         for (let attachment of attachments) {
-            const OpenGovID = body.OpenGovID;
-            console.log('CW-OG OpenGovID:', OpenGovID);
             const attachmentId      = attachment.Id;
             const attachmentName    = "Cityworks_" + attachmentId.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + ".jpg";
             const fileUploadResult  = yield context.df.callActivity('fileUpload', attachmentName);
@@ -29,7 +27,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             returnValues.push({ uploadUrl });
             const uploadResult      = yield context.df.callActivity('uploadImages', { attachmentId, cwToken, uploadUrl });
             returnValues.push({ attachmentId, ...uploadResult });
-            const addedFileResult  = yield context.df.callActivity('attachFile', { fileID, attachmentName, OpenGovID });
+            const addedFileResult  = yield context.df.callActivity('attachFile', { fileID, attachmentName, id: body.OpenGovID });
             returnValues.push({ attachedFile: addedFileResult });
         }
     }
