@@ -5,7 +5,6 @@
 
 const { app } = require('@azure/functions');
 const df = require('durable-functions');
-const axios = require('axios');
 
 const activityName = 'Cityworks-OpenGov-Orchestrator';
 
@@ -16,38 +15,35 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     const series = context.df.instanceId;
 
     // start cronitor
-    if (!context.df.isReplaying) {
-        yield context.df.callActivity('cronitorPing', {
-            params: {
-                state: 'run',
-                series: context.df.instanceId,
-                message: `Started | CityworksWOID=${body.CityworksWOID}`
-            }
-        });
-    }
+    yield context.df.callActivity('cronitorPing', {
+        enabled: !context.df.isReplaying,
+        params: {
+            state: 'run',
+            series: context.df.instanceId,
+            message: `Started | CityworksWOID=${body.CityworksWOID}`
+        }
+    });
 
     // get Cityworks token
     const cwToken = yield context.df.callActivity('token');
-    if (!context.df.isReplaying) {
-        yield context.df.callActivity('cronitorPing', {
-            params: {
-                series: context.df.instanceId,
-                message: 'Cityworks token retrieved'
-            }
-        });
-    }
-
+    yield context.df.callActivity('cronitorPing', {
+        enabled: !context.df.isReplaying,
+        params: {
+            series: context.df.instanceId,
+            message: 'Cityworks token retrieved'
+        }
+    });
+    
     // get attachments from Cityworks work order
     const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.CityworksWOID });  
-    if (!context.df.isReplaying) {
-        yield context.df.callActivity('cronitorPing', {
-            params: {
-                series: context.df.instanceId,
-                message: `Attachments found: ${attachments.length}`
-            }
-        });
-    }  
-
+    yield context.df.callActivity('cronitorPing', {
+        enabled: !context.df.isReplaying,
+        params: {
+            series: context.df.instanceId,
+            message: `Attachments found: ${attachments.length}`
+        }
+    });
+    
     // check for and process attachments from Cityworks
     if ( attachments.length > 0 ) {
         for (let attachment of attachments) {
@@ -64,27 +60,26 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             
             // linking attachment to OpenGov record
             const attachedRecord = yield context.df.callActivity('attachFile', { fileID, attachmentName, id: body.OpenGovID });
-            if (!context.df.isReplaying) {
-                yield context.df.callActivity('cronitorPing', {
-                    params: {
-                        series: context.df.instanceId,
-                        message: `Attachment added to record: ${attachedRecord.data.id}`
-                    }
+            yield context.df.callActivity('cronitorPing', {
+                enabled: !context.df.isReplaying,
+                params: {
+                    series: context.df.instanceId,
+                    message: `Attachment added to record: ${attachedRecord.data.id}`
+                }
                 });
-            }  
+             
         }
     }
     // update OpenGov record workflow step for VPA Mowing Abatement 
     const stepID = yield context.df.callActivity('workflowUpdate', { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID });
-    if (!context.df.isReplaying) {
-        yield context.df.callActivity('cronitorPing', {
-            params: {
-                state: 'complete',
-                series: context.df.instanceId,
-                message: `Completed successfully | StepID=${stepID}`
+    yield context.df.callActivity('cronitorPing', {
+        enabled: !context.df.isReplaying,
+        params: {
+            state: 'complete',
+            series: context.df.instanceId,
+            message: `Completed successfully | StepID=${stepID}`
             }
         });
-    }
 
     // will need to update record workflow step (may be two parts - retrieve steps to get step ID and ordinal and then update step)
 

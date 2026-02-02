@@ -4,10 +4,12 @@ const axios = require('axios');
 
 app.activity('cronitorPing', {
     handler: async (input, context) => {
-        const { params } = input;
-        const monitorUrl = process.env.CRON_URL;
+        if (!input.enabled) {
+            return;
+        }
 
-        await axios.get(monitorUrl, { params });
-        return;
+        await axios.get(process.env.CRON_URL, {
+            params: input.params
+        });
     }
 });
