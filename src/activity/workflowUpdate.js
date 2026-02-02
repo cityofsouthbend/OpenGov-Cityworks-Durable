@@ -12,13 +12,22 @@ df.app.activity("workflowUpdate", {
       url: `https://api.plce.opengov.com/plce/v2/southbendin/records/${id}/workflow-steps`,
       headers: { 
         'Authorization': `Token ${process.env.OPENGOV_TOKEN}`
-    },
-    timeout: 30000
+      },
+      timeout: 30000
     });
 
-    return listSteps.data;
+    const steps = listSteps.data.data;
+    const activeMowingStep = steps.find(step => 
+      step.attributes.label === 'VPA Mowing Abatement' &&
+      step.attributes.status === 'ACTIVE');
+
+    if (activeMowingStep) {
+      return activeMowingStep.id;
+    }
+
+    return null; 
   } catch (error) {
-    throw error;
+      throw error;
   }
 },
 });
