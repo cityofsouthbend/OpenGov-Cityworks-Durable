@@ -22,7 +22,27 @@ df.app.activity("workflowUpdate", {
       step.attributes.status === 'ACTIVE');
 
     if (activeMowingStep) {
-      return activeMowingStep.id;
+      const updateAction = await axios({
+        method: "PATCH",
+        url: `https://api.plce.opengov.com/plce/v2/southbendin/records/${id}/workflow-steps/${activeMowingStep.id}`,
+        headers: {
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Token ${process.env.OPENGOV_TOKEN}`
+        },
+        data: JSON.stringify({
+          data: {
+            type: "workflowStep",
+            id: `CW=OG-${activeMowingStep.id}`,
+            attributes: {
+              label: activeMowingStep.attributes.label,
+              status: "COMPLETE",
+            }
+          },
+        }),
+        timeout: 30000
+      });
+
+      return updateAction.data;
     }
 
     return null; 
