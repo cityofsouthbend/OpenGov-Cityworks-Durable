@@ -1,8 +1,9 @@
 // activities/cronitorPing.js
 const { app } = require('@azure/functions');
+const df = require('durable-functions');
 const axios = require('axios');
 
-app.activity('cronitorPing', {
+df.app.activity('cronitorPing', {
     handler: async (input, context) => {
         if (!input.enabled) {
             return;
