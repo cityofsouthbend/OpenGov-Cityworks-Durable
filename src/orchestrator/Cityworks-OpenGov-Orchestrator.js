@@ -33,6 +33,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
     }
 
     const workflowUpdate = yield context.df.callActivity('workflowUpdate', { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID });
+    console.log('CW-OG ORC workflowUpdate result:', workflowUpdate);
     returnValues.push({ workflowUpdate });
     // will need to update record workflow step (may be two parts - retrieve steps to get step ID and ordinal and then update step)
 
