@@ -16,3 +16,4 @@ require('./activity/images');
 require('./activity/fileUpload');
 require('./activity/uploadImages');
 require('./activity/attachFile');
+require('./activity/workflowUpdate');
