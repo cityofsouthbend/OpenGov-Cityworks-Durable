@@ -1,18 +1,14 @@
-    // currently looks like this in CItyworks {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","AccelaCaseID":"{{Text1}}","AccelaInspectionID":"{{Text2}}"}
-    // will now look like this {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","OpenGovID":"{{Text1}}","RecordName":"{{Text2}}"}
-    // current POST API opengov-cityworks-apgbc2gth3cyftda.centralus-01.azurewebsites.net/api/orchestrators/Cityworks-OpenGov-OrchestratorOrchestrator
-    // previous codemowing-ver3.azurewebsites.net/cw
+// currently looks like this in CItyworks {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","AccelaCaseID":"{{Text1}}","AccelaInspectionID":"{{Text2}}"}
+// will now look like this {"Status":"{{Text10}}","CityworksWOID":"{{WorkOrderID}}","OpenGovID":"{{Text1}}","RecordName":"{{Text2}}"}
+// current POST API opengov-cityworks-apgbc2gth3cyftda.centralus-01.azurewebsites.net/api/orchestrators/Cityworks-OpenGov-OrchestratorOrchestrator
+// previous codemowing-ver3.azurewebsites.net/cw
 
 const { app } = require('@azure/functions');
 const df = require('durable-functions');
 
-const activityName = 'Cityworks-OpenGov-Orchestrator';
-
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
 
     const body = context.df.getInput() || {};
-    const monitorUrl = process.env.CRON_URL || null;
-    const series = context.df.instanceId;
 
     // start cronitor
     yield context.df.callActivity('cronitorPing', {
@@ -64,12 +60,13 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
                 enabled: !context.df.isReplaying,
                 params: {
                     series: context.df.instanceId,
-                    message: `Attachment added to record: ${attachedRecord.data.id}`
+                    message: `Attachment ID ${attachedRecord.data.id} added to record`
                 }
                 });
              
-        }
-    }
+        } // end for attachments
+    } // end if attachments
+
     // update OpenGov record workflow step for VPA Mowing Abatement 
     const stepID = yield context.df.callActivity('workflowUpdate', { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID });
     yield context.df.callActivity('cronitorPing', {
@@ -77,13 +74,11 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
         params: {
             state: 'complete',
             series: context.df.instanceId,
-            message: `Completed successfully | StepID=${stepID}`
+            message: `Completed successfully | StepID: ${stepID.id}`
             }
-        });
+    });
 
-    // will need to update record workflow step (may be two parts - retrieve steps to get step ID and ordinal and then update step)
-
-    return;
+    return; // end of orchestration
 });
 
 
