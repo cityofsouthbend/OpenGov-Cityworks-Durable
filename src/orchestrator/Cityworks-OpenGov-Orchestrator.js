@@ -10,10 +10,6 @@ const axios = require('axios');
 const activityName = 'Cityworks-OpenGov-Orchestrator';
 
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
-    // cronitor helper function 
-    function sendCronitor(params) {
-        return axios.get(monitorUrl, { params });
-    }
 
     const body = context.df.getInput() || {};
     const monitorUrl = process.env.CRON_URL || null;
@@ -21,28 +17,34 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
 
     // start cronitor
     if (!context.df.isReplaying) {
-        yield sendCronitor({
-            state: 'run',
-            series,
-            message: `Started | CityworksWOID=${body.CityworksWOID} OpenGovID=${body.OpenGovID}`
+        yield context.df.callActivity('cronitorPing', {
+            params: {
+                state: 'run',
+                series: context.df.instanceId,
+                message: `Started | CityworksWOID=${body.CityworksWOID}`
+            }
         });
     }
 
     // get Cityworks token
     const cwToken = yield context.df.callActivity('token');
     if (!context.df.isReplaying) {
-        yield sendCronitor({
-            series,
-            message: 'Cityworks token retrieved'
+        yield context.df.callActivity('cronitorPing', {
+            params: {
+                series: context.df.instanceId,
+                message: 'Cityworks token retrieved'
+            }
         });
     }
 
     // get attachments from Cityworks work order
     const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.CityworksWOID });  
     if (!context.df.isReplaying) {
-        yield sendCronitor({
-            series,
-            message: `Attachments found: ${attachments.length}`
+        yield context.df.callActivity('cronitorPing', {
+            params: {
+                series: context.df.instanceId,
+                message: `Attachments found: ${attachments.length}`
+            }
         });
     }  
 
@@ -63,20 +65,24 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             // linking attachment to OpenGov record
             const attachedRecord = yield context.df.callActivity('attachFile', { fileID, attachmentName, id: body.OpenGovID });
             if (!context.df.isReplaying) {
-                yield sendCronitor({
-                series,
-                message: `Attachment added to record: ${attachedRecord.data.id}`
-            });
-    }  
+                yield context.df.callActivity('cronitorPing', {
+                    params: {
+                        series: context.df.instanceId,
+                        message: `Attachment added to record: ${attachedRecord.data.id}`
+                    }
+                });
+            }  
         }
     }
     // update OpenGov record workflow step for VPA Mowing Abatement 
     const stepID = yield context.df.callActivity('workflowUpdate', { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID });
     if (!context.df.isReplaying) {
-        yield sendCronitor({
-            state: 'complete',
-            series,
-            message: `Completed successfully | StepID=${stepID}`
+        yield context.df.callActivity('cronitorPing', {
+            params: {
+                state: 'complete',
+                series: context.df.instanceId,
+                message: `Completed successfully | StepID=${stepID}`
+            }
         });
     }
 
