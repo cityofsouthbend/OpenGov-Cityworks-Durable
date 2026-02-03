@@ -63,9 +63,17 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
                         series: context.df.instanceId,
                         message: `Attachment ID ${attachedRecord.data.id} added to record`
                     }
-                    });
+                });
                 
             } // end for attachments
+        } else {
+            yield context.df.callActivity('cronitorPing', {
+                enabled: !context.df.isReplaying,
+                params: {
+                    series: context.df.instanceId,
+                    message: `No attachments found`
+                }
+            });
         } // end if attachments
 
         // update OpenGov record workflow step for VPA Mowing Abatement 
