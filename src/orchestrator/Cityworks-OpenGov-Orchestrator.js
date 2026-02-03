@@ -7,6 +7,7 @@ const { app } = require('@azure/functions');
 const df = require('durable-functions');
 
 df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (context) {
+    const retryOptions = new df.RetryOptions(5000, 3);
 
     const body = context.df.getInput() || {};
 
@@ -32,7 +33,11 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
         });
     
         // get attachments from Cityworks work order
-        const attachments = yield context.df.callActivity('images', { cityworksToken: cwToken, orderNumber: body.CityworksWOID });  
+        const attachments = yield context.df.callActivityWithRetry(
+            'images', 
+            retryOptions,
+            { cityworksToken: cwToken, orderNumber: body.CityworksWOID }
+        );  
         yield context.df.callActivity('cronitorPing', {
             enabled: !context.df.isReplaying,
             params: {
@@ -48,15 +53,27 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
                 const attachmentName    = "Cityworks_" + attachmentId.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + ".jpg";
                 
                 // creating attachment link in OpenGov
-                const fileUploadResult  = yield context.df.callActivity('fileUpload', attachmentName);
+                const fileUploadResult  = yield context.df.callActivityWithRetry(
+                    'fileUpload',
+                    retryOptions,
+                    attachmentName
+                );
                 const fileID            = fileUploadResult.data.id;
                 const uploadUrl         = fileUploadResult.data.attributes.uploadUrl;
                 
                 // uploading attachment to Azure Blob URL provided by OpenGov
-                yield context.df.callActivity('uploadImages', { attachmentId, cwToken, uploadUrl });
+                yield context.df.callActivityWithRetry(
+                    'uploadImages', 
+                    retryOptions,
+                    { attachmentId, cwToken, uploadUrl }
+                );
                 
                 // linking attachment to OpenGov record
-                const attachedRecord = yield context.df.callActivity('attachFile', { fileID, attachmentName, id: body.OpenGovID });
+                const attachedRecord = yield context.df.callActivityWithRetry(
+                    'attachFile',
+                    retryOptions,
+                    { fileID, attachmentName, id: body.OpenGovID }
+                );
                 yield context.df.callActivity('cronitorPing', {
                     enabled: !context.df.isReplaying,
                     params: {
@@ -77,7 +94,11 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
         } // end if attachments
 
         // update OpenGov record workflow step for VPA Mowing Abatement 
-        const stepID = yield context.df.callActivity('workflowUpdate', { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID });
+        const stepID = yield context.df.callActivityWithRetry(
+            'workflowUpdate', 
+            retryOptions,
+            { orderNumber: body.CityworksWOID, status: body.Status, id: body.OpenGovID }
+        );
         yield context.df.callActivity('cronitorPing', {
             enabled: !context.df.isReplaying,
             params: {
