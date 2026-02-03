@@ -3,7 +3,7 @@ const df = require('durable-functions');
 const axios = require('axios');
 
 df.app.activity('images', {
-    handler: async (input) => {
+    handler: async (input, context) => {
         const {cityworksToken, orderNumber} = input;
         const baseUrlCW = "https://app05.cityworksonline.com/CLIENT_SouthBendIN/Services";
 
@@ -27,7 +27,7 @@ df.app.activity('images', {
                     return !fileName.startsWith("Accela_"); // will need to change to filter for OpenGov_
                 }
 
-                var filteredAtth = listAtths.filter(checkAtth);
+                let filteredAtth = listAtths.filter(checkAtth);
                 return filteredAtth
 
             } else {
@@ -35,7 +35,14 @@ df.app.activity('images', {
                 return []; // returning an empty array for now 
             }
         } catch (error) {
-            // context.log(error);
+            const status = error.response?.status;
+
+            context.log('Cityworks images activity failed', {
+                orderNumber,
+                status,
+                message: error.message
+            });
+
             throw error;
         }
     },
