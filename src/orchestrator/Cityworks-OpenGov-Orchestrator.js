@@ -23,7 +23,7 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
         });
 
         // get Cityworks token
-        const cwToken = yield context.df.callActivity('token');
+        const cwToken = yield context.df.callActivityWithRetry('token', retryOptions);
         yield context.df.callActivity('cronitorPing', {
             enabled: !context.df.isReplaying,
             params: {
