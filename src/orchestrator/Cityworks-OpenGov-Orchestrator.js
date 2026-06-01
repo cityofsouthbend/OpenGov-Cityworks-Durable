@@ -94,7 +94,19 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             }));
         } // end if attachments
 
-        // update OpenGov record workflow step for VPA Mowing Abatement
+        // update OpenGov record workflow step for VPA Mowing Abatement -
+        // only when the Cityworks status signals abatement is finished. Other
+        // statuses have no matching workflow step on the OpenGov side.
+        const isAbatementComplete = (body.Status || '').trim().toUpperCase() === 'ABATEMENT COMPLETE';
+
+        if (!isAbatementComplete) {
+            yield context.df.callActivity('cronitorPing', pingInput({
+                state: 'complete',
+                message: `Completed - workflow update skipped - Status=${body.Status} CityworksWOID=${body.CityworksWOID}`
+            }));
+            return;
+        }
+
         yield context.df.callActivity('cronitorPing', pingInput({
             message: `Updating workflow step - OpenGovID=${body.OpenGovID} Status=${body.Status}`
         }));
