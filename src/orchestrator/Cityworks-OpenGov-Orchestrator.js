@@ -104,12 +104,21 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             }));
         } // end if attachments
 
-        // update OpenGov record workflow step for VPA Mowing Abatement -
-        // only when the Cityworks status signals abatement is finished. Other
-        // statuses have no matching workflow step on the OpenGov side.
-        const isAbatementComplete = status.trim().toUpperCase() === 'ABATEMENT COMPLETE';
+        // map Cityworks Text10 to a VPA Mowing Abatement workflow action -
+        // ABATEMENT COMPLETE marks the step COMPLETE; COMPLETED BY OWNER and
+        // OPENED IN ERROR mark it SKIPPED and add a comment explaining why.
+        // Any other status has no matching action on the OpenGov side.
+        const normalizedStatus = status.trim().toUpperCase();
+        let stepStatus = null;
+        let skipComment = null;
+        if (normalizedStatus === 'ABATEMENT COMPLETE') {
+            stepStatus = 'COMPLETE';
+        } else if (normalizedStatus === 'COMPLETED BY OWNER' || normalizedStatus === 'OPENED IN ERROR') {
+            stepStatus = 'SKIPPED';
+            skipComment = `Cityworks Status: ${status} - no mowing work needed.`;
+        }
 
-        if (!isAbatementComplete) {
+        if (!stepStatus) {
             yield context.df.callActivity('cronitorPing', pingInput({
                 state: 'complete',
                 message: `Completed - workflow update skipped - Status=${status} CityworksWOID=${body.CityworksWOID}`
@@ -118,19 +127,30 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
         }
 
         yield context.df.callActivity('cronitorPing', pingInput({
-            message: `Updating workflow step - OpenGovID=${body.OpenGovID} Status=${status}`
+            message: `Updating workflow step - OpenGovID=${body.OpenGovID} Status=${status} StepStatus=${stepStatus}`
         }));
         const workflowResult = yield context.df.callActivityWithRetry(
             'workflowUpdate',
             retryOptions,
-            { orderNumber: body.CityworksWOID, status, id: body.OpenGovID }
+            { orderNumber: body.CityworksWOID, status, id: body.OpenGovID, stepStatus }
         );
 
         const updatedStepId = workflowResult?.data?.id ?? null;
+        if (updatedStepId && skipComment) {
+            yield context.df.callActivityWithRetry(
+                'workflowComment',
+                retryOptions,
+                { id: body.OpenGovID, stepID: updatedStepId, comment: skipComment }
+            );
+            yield context.df.callActivity('cronitorPing', pingInput({
+                message: `Comment posted to workflow step - StepID=${updatedStepId}`
+            }));
+        }
+
         if (updatedStepId) {
             yield context.df.callActivity('cronitorPing', pingInput({
                 state: 'complete',
-                message: `Completed successfully - CityworksWOID=${body.CityworksWOID} StepID=${updatedStepId}`
+                message: `Completed successfully - CityworksWOID=${body.CityworksWOID} StepID=${updatedStepId} StepStatus=${stepStatus}`
             }));
         } else {
             yield context.df.callActivity('cronitorPing', pingInput({

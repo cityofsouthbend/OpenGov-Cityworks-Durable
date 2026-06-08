@@ -17,4 +17,5 @@ require('./activity/fileUpload');
 require('./activity/uploadImages');
 require('./activity/attachFile');
 require('./activity/workflowUpdate');
+require('./activity/workflowComment');
 require('./activity/cronitorPing');
