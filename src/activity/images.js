@@ -24,7 +24,7 @@ df.app.activity('images', {
 
                 function checkAtth(e) {
                     let fileName = e.Attachment.split("\\").slice(-1).toString();
-                    return !fileName.startsWith("Accela_"); // will need to change to filter for OpenGov_
+                    return !fileName.startsWith("Accela_") && !fileName.startsWith("OpenGov");
                 }
 
                 let filteredAtth = listAtths.filter(checkAtth);
