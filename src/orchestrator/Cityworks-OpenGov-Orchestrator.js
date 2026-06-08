@@ -126,6 +126,28 @@ df.app.orchestration('Cityworks-OpenGov-OrchestratorOrchestrator', function* (co
             return;
         }
 
+        // when skipping the VPA Mowing Abatement step, first delete the downstream
+        // steps that are gated by case-level form fields (Mowing Invoice, Grass and
+        // Weeds Citation, Collect Payment). Their actions fire independent of the
+        // abatement step status, so SKIP alone doesn't stop them - deletion does.
+        // Order matters: delete BEFORE touching the abatement step.
+        if (stepStatus === 'SKIPPED') {
+            const downstreamLabels = ['Mowing Invoice', 'Grass and Weeds Citation', 'Collect Payment'];
+            yield context.df.callActivity('cronitorPing', pingInput({
+                message: `Deleting downstream steps - OpenGovID=${body.OpenGovID} Labels=${downstreamLabels.join('|')}`
+            }));
+            const deleteResult = yield context.df.callActivityWithRetry(
+                'workflowDelete',
+                retryOptions,
+                { id: body.OpenGovID, labels: downstreamLabels }
+            );
+            const deletedSummary = deleteResult.deleted.map(d => `${d.label}:${d.stepID}`).join('|') || 'none';
+            const notFoundSummary = deleteResult.notFound.join('|') || 'none';
+            yield context.df.callActivity('cronitorPing', pingInput({
+                message: `Downstream steps processed - Deleted=${deletedSummary} NotFound=${notFoundSummary}`
+            }));
+        }
+
         yield context.df.callActivity('cronitorPing', pingInput({
             message: `Updating workflow step - OpenGovID=${body.OpenGovID} Status=${status} StepStatus=${stepStatus}`
         }));
